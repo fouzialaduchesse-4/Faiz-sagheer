@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>فائز الصغير</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<style>
+  html,body{margin:0;padding:0;}
+  *{box-sizing:border-box;font-family:'Cairo',sans-serif;}
+  .display{font-family:'Tajawal',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+"use strict";
+const { useState, useEffect, useRef, useCallback } = React;
+/* ============================== البيانات ============================== */
+const LETTERS = [
+    { id: "alef", ch: "أ", name: "أَلِف", word: "أَسَد", emoji: "🦁" },
+    { id: "ba", ch: "ب", name: "بَاء", word: "بَطَّة", emoji: "🦆" },
+    { id: "ta", ch: "ت", name: "تَاء", word: "تُفَّاحَة", emoji: "🍎" },
+    { id: "tha", ch: "ث", name: "ثَاء", word: "ثَعْلَب", emoji: "🦊" },
+    { id: "jim", ch: "ج", name: "جِيم", word: "جَمَل", emoji: "🐪" },
+    { id: "ha", ch: "ح", name: "حَاء", word: "حِصَان", emoji: "🐴" },
+    { id: "kha", ch: "خ", name: "خَاء", word: "خَرُوف", emoji: "🐑" },
+    { id: "dal", ch: "د", name: "دَال", word: "دُبّ", emoji: "🐻" },
+    { id: "dhal", ch: "ذ", name: "ذَال", word: "ذُرَة", emoji: "🌽" },
+    { id: "ra", ch: "ر", name: "رَاء", word: "رِسَالَة", emoji: "✉️" },
+    { id: "zay", ch: "ز", name: "زَاي", word: "زَرَافَة", emoji: "🦒" },
+    { id: "sin", ch: "س", name: "سِين", word: "سَمَكَة", emoji: "🐟" },
+    { id: "shin", ch: "ش", name: "شِين", word: "شَمْس", emoji: "☀️" },
+    { id: "sad", ch: "ص", name: "صَاد", word: "صَقْر", emoji: "🦅" },
+    { id: "dad", ch: "ض", name: "ضَاد", word: "ضِفْدَع", emoji: "🐸" },
+    { id: "ta2", ch: "ط", name: "طَاء", word: "طَائِرَة", emoji: "✈️" },
+    { id: "za2", ch: "ظ", name: "ظَاء", word: "ظَرْف", emoji: "📨" },
+    { id: "ain", ch: "ع", name: "عَيْن", word: "عُصْفُور", emoji: "🐦" },
+    { id: "ghain", ch: "غ", name: "غَيْن", word: "غَزَال", emoji: "🦌" },
+    { id: "fa", ch: "ف", name: "فَاء", word: "فِيل", emoji: "🐘" },
+    { id: "qaf", ch: "ق", name: "قَاف", word: "قِطَّة", emoji: "🐱" },
+    { id: "kaf", ch: "ك", name: "كَاف", word: "كَلْب", emoji: "🐶" },
+    { id: "lam", ch: "ل", name: "لَام", word: "لَيْمُون", emoji: "🍋" },
+    { id: "mim", ch: "م", name: "مِيم", word: "مَوْز", emoji: "🍌" },
+    { id: "nun", ch: "ن", name: "نُون", word: "نَحْلَة", emoji: "🐝" },
+    { id: "ha2", ch: "ه", name: "هَاء", word: "هِلَال", emoji: "🌙" },
+    { id: "waw", ch: "و", name: "وَاو", word: "وَرْدَة", emoji: "🌹" },
+    { id: "ya", ch: "ي", name: "يَاء", word: "يَد", emoji: "✋" },
+];
+const NUM_WORDS = ["", "وَاحِد", "اِثْنَان", "ثَلَاثَة", "أَرْبَعَة", "خَمْسَة", "سِتَّة", "سَبْعَة", "ثَمَانِيَة", "تِسْعَة", "عَشَرَة"];
+const NUMBERS = Array.from({ length: 10 }, (_, i) => ({
+    id: `n${i + 1}`, num: i + 1, word: NUM_WORDS[i + 1], emoji: "🍎",
+}));
+const FAMILY = [
+    { id: "father", word: "الْأَب", emoji: "👨" },
+    { id: "mother", word: "الْأُم", emoji: "👩" },
+    { id: "brother", word: "الْأَخ", emoji: "👦" },
+    { id: "sister", word: "الْأُخْت", emoji: "👧" },
+    { id: "grandpa", word: "الْجَدّ", emoji: "👴" },
+    { id: "grandma", word: "الْجَدَّة", emoji: "👵" },
+];
+const ANIMALS = [
+    { id: "lion", word: "الْأَسَد", emoji: "🦁" },
+    { id: "cat", word: "الْقِطَّة", emoji: "🐱" },
+    { id: "elephant", word: "الْفِيل", emoji: "🐘" },
+    { id: "horse", word: "الْحِصَان", emoji: "🐴" },
+    { id: "rabbit", word: "الْأَرْنَب", emoji: "🐰" },
+    { id: "giraffe", word: "الزَّرَافَة", emoji: "🦒" },
+];
+const PROFESSIONS = [
+    { id: "doctor_m", word: "طَبِيب", emoji: "👨‍⚕️" },
+    { id: "doctor_f", word: "طَبِيبَة", emoji: "👩‍⚕️" },
+    { id: "teacher_m", word: "مُعَلِّم", emoji: "👨‍🏫" },
+    { id: "teacher_f", word: "مُعَلِّمَة", emoji: "👩‍🏫" },
+    { id: "police_m", word: "شُرْطِيّ", emoji: "👮‍♂️" },
+    { id: "police_f", word: "شُرْطِيَّة", emoji: "👮‍♀️" },
+    { id: "firefighter", word: "رَجُل الْإِطْفَاء", emoji: "👨‍🚒" },
+    { id: "farmer", word: "مُزَارِع", emoji: "👨‍🌾" },
+    { id: "baker", word: "خَبَّاز", emoji: "🧑‍🍳" },
+];
+const OBJECTS = [
+    { id: "car", word: "سَيَّارَة", emoji: "🚗" },
+    { id: "book", word: "كِتَاب", emoji: "📖" },
+    { id: "chair", word: "كُرْسِيّ", emoji: "🪑" },
+    { id: "bag", word: "حَقِيبَة", emoji: "🎒" },
+    { id: "apple", word: "تُفَّاحَة", emoji: "🍎" },
+    { id: "ball", word: "كُرَة", emoji: "⚽" },
+    { id: "pen", word: "قَلَم", emoji: "✏️" },
+    { id: "table", word: "طَاوِلَة", emoji: "🍽️" },
+];
+const SECTIONS = [
+    { id: "letters", title: "الحروف العربية", emoji: "🔤", color: "#4C8DF2", data: LETTERS, labelKey: "ch", subKey: "word" },
+    { id: "numbers", title: "الأرقام", emoji: "🔢", color: "#F2A63C", data: NUMBERS, labelKey: "num", subKey: "word" },
+    { id: "family", title: "أفراد العائلة", emoji: "👨‍👩‍👧", color: "#8B6FD6", data: FAMILY, labelKey: "word", subKey: null },
+    { id: "animals", title: "الحيوانات", emoji: "🐾", color: "#4CAF7D", data: ANIMALS, labelKey: "word", subKey: null },
+    { id: "professions", title: "المهن", emoji: "👩‍⚕️", color: "#F2673C", data: PROFESSIONS, labelKey: "word", subKey: null },
+    { id: "objects", title: "أشياء من حولنا", emoji: "🎒", color: "#3CB8B2", data: OBJECTS, labelKey: "word", subKey: null },
+];
+const CHEERS = ["أَحْسَنْتَ يَا بَطَل", "رَائِع جِدًّا", "أَحْسَنْتَ يَا صَغِيرِي", "مُمْتَاز! اسْتَمِرّ", "شَاطِر"];
+const TRY_AGAIN = ["حَاوِل مَرَّة أُخْرَى يَا بَطَل", "قَرِيبًا تَنْجَح، جَرِّب ثَانِيَة", "لَا بَأْس، حَاوِل مُجَدَّدًا"];
+const STORAGE_KEY = "faiz-sagheer-progress";
+/* ============================== أدوات مساعدة ============================== */
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function sample(arr, n) { return shuffle(arr).slice(0, n); }
+/* ============================== الخلفية الطبيعية ============================== */
+function NatureBackground() {
+    return (React.createElement("svg", { viewBox: "0 0 400 800", preserveAspectRatio: "xMidYMax slice", style: { position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 0 } },
+        React.createElement("defs", null,
+            React.createElement("linearGradient", { id: "sky", x1: "0", y1: "0", x2: "0", y2: "1" },
+                React.createElement("stop", { offset: "0%", stopColor: "#BEE3F8" }),
+                React.createElement("stop", { offset: "100%", stopColor: "#EAF6FF" }))),
+        React.createElement("rect", { width: "400", height: "800", fill: "url(#sky)" }),
+        React.createElement("circle", { cx: "340", cy: "80", r: "34", fill: "#FFD25C" }),
+        React.createElement("g", { fill: "#FFFFFF", opacity: "0.9" },
+            React.createElement("ellipse", { cx: "70", cy: "90", rx: "34", ry: "18" }),
+            React.createElement("ellipse", { cx: "95", cy: "82", rx: "26", ry: "16" }),
+            React.createElement("ellipse", { cx: "45", cy: "82", rx: "22", ry: "14" }),
+            React.createElement("ellipse", { cx: "250", cy: "150", rx: "30", ry: "16" }),
+            React.createElement("ellipse", { cx: "272", cy: "144", rx: "22", ry: "14" })),
+        React.createElement("path", { d: "M0,620 Q100,570 200,610 T400,600 V800 H0 Z", fill: "#8FD19E" }),
+        React.createElement("path", { d: "M0,660 Q120,620 220,655 T400,645 V800 H0 Z", fill: "#6FBE85" }),
+        React.createElement("g", { transform: "translate(40,555)" },
+            React.createElement("rect", { x: "0", y: "30", width: "60", height: "45", fill: "#F2C6A0" }),
+            React.createElement("polygon", { points: "-8,30 30,4 68,30", fill: "#E2725B" }),
+            React.createElement("rect", { x: "24", y: "48", width: "14", height: "27", fill: "#8B5E3C" }),
+            React.createElement("rect", { x: "6", y: "42", width: "12", height: "12", fill: "#BEE3F8" })),
+        React.createElement("g", { transform: "translate(300,540)" },
+            React.createElement("rect", { x: "14", y: "40", width: "10", height: "40", fill: "#8B5E3C" }),
+            React.createElement("circle", { cx: "19", cy: "30", r: "26", fill: "#5FAE73" })),
+        React.createElement("g", { transform: "translate(340,565)" },
+            React.createElement("rect", { x: "10", y: "28", width: "8", height: "30", fill: "#8B5E3C" }),
+            React.createElement("circle", { cx: "14", cy: "20", r: "19", fill: "#6FBE85" })),
+        [60, 120, 175, 230, 260].map((x, i) => (React.createElement("g", { key: i, transform: `translate(${x},700)` },
+            React.createElement("circle", { r: "5", fill: ["#F2A63C", "#F2673C", "#8B6FD6", "#F2C43D", "#4C8DF2"][i % 5] }))))));
+}
+/* ============================== شخصية فائز ============================== */
+function FaizMascot({ size = 90 }) {
+    return (React.createElement("svg", { width: size, height: size, viewBox: "0 0 100 100" },
+        React.createElement("circle", { cx: "50", cy: "55", r: "38", fill: "#F2C6A0" }),
+        React.createElement("path", { d: "M14,45 Q50,5 86,45 Q86,20 50,18 Q14,20 14,45 Z", fill: "#4C3B2A" }),
+        React.createElement("circle", { cx: "36", cy: "55", r: "6", fill: "#2A2A2A" }),
+        React.createElement("circle", { cx: "64", cy: "55", r: "6", fill: "#2A2A2A" }),
+        React.createElement("circle", { cx: "38", cy: "53", r: "1.6", fill: "#fff" }),
+        React.createElement("circle", { cx: "66", cy: "53", r: "1.6", fill: "#fff" }),
+        React.createElement("path", { d: "M36,72 Q50,84 64,72", stroke: "#8B4A3C", strokeWidth: "4", fill: "none", strokeLinecap: "round" }),
+        React.createElement("circle", { cx: "26", cy: "66", r: "6", fill: "#F2A6A0", opacity: "0.6" }),
+        React.createElement("circle", { cx: "74", cy: "66", r: "6", fill: "#F2A6A0", opacity: "0.6" })));
+}
+/* ============================== الصوت ============================== */
+function useSpeaker(soundOn) {
+    const voicesRef = useRef([]);
+    const [hasArabicVoice, setHasArabicVoice] = useState(true); // متفائل حتى يثبت العكس
+    const [checked, setChecked] = useState(false);
+    useEffect(() => {
+        function loadVoices() {
+            const list = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+            if (list && list.length) {
+                voicesRef.current = list;
+                setHasArabicVoice(list.some((v) => v.lang && v.lang.toLowerCase().startsWith("ar")));
+                setChecked(true);
+            }
+        }
+        loadVoices();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            setTimeout(loadVoices, 700);
+            // تهيئة محرك الصوت مبكرًا: بعض المتصفحات على أندرويد تفشل بصمت
+            // في أول استدعاء لـ speak() قبل أن يكون المحرك جاهزًا فعليًا
+            try {
+                const warmup = new SpeechSynthesisUtterance(" ");
+                warmup.volume = 0;
+                window.speechSynthesis.speak(warmup);
+            }
+            catch (e) {
+                // تجاهل أي خطأ في التهيئة المسبقة
+            }
+        }
+    }, []);
+    const speak = useCallback((text) => {
+        if (!soundOn)
+            return;
+        try {
+            if (!window.speechSynthesis)
+                return;
+            window.speechSynthesis.cancel();
+            // تأخير بسيط بعد الإلغاء: بعض محركات النطق على أندرويد
+            // تحتاج لحظة قبل قبول أمر نطق جديد، وإلا يُقطع الصوت في منتصفه
+            setTimeout(() => {
+                const utter = new SpeechSynthesisUtterance(text);
+                const arabicVoice = voicesRef.current.find((v) => v.lang && v.lang.toLowerCase().startsWith("ar"));
+                if (arabicVoice)
+                    utter.voice = arabicVoice;
+                utter.lang = arabicVoice ? arabicVoice.lang : "ar-SA";
+                utter.rate = 0.8;
+                utter.pitch = 1.1;
+                window.speechSynthesis.speak(utter);
+            }, 80);
+        }
+        catch (e) {
+            console.log("تعذّر تشغيل الصوت في هذا المتصفح");
+        }
+    }, [soundOn]);
+    return { speak, hasArabicVoice: checked ? hasArabicVoice : true };
+}
+/* ============================== الرأس ============================== */
+function TopBar({ title, onBack, stars, soundOn, setSoundOn }) {
+    return (React.createElement("div", { style: s.topbar },
+        onBack ? (React.createElement("button", { style: s.backBtn, onClick: onBack },
+            React.createElement("span", { style: { fontSize: 22 } }, "\u2039"))) : React.createElement("div", { style: { width: 40 } }),
+        React.createElement("div", { style: s.topTitle }, title),
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+            React.createElement("button", { style: s.soundBtn, onClick: () => setSoundOn((v) => !v) }, soundOn ? React.createElement("span", { style: { fontSize: 16 } }, "\uD83D\uDD0A") : React.createElement("span", { style: { fontSize: 16 } }, "\uD83D\uDD08")),
+            React.createElement("div", { style: s.starPill },
+                React.createElement("span", { style: { fontSize: 14 } }, "\u2B50"),
+                React.createElement("span", null, stars)))));
+}
+/* ============================== الشاشة الرئيسية ============================== */
+function HomeScreen({ stars, hasArabicVoice, onOpenSection, onOpenGames, onOpenParentsGate }) {
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: { textAlign: "center", marginTop: 6, marginBottom: 14 } },
+            React.createElement(FaizMascot, { size: 100 }),
+            React.createElement("div", { className: "display", style: s.brandTitle }, "\u0641\u0627\u0626\u0632 \u0627\u0644\u0635\u063A\u064A\u0631"),
+            React.createElement("div", { style: s.tagline }, "\u2B50 \u0646\u062A\u0639\u0644\u0645 \u0648\u0646\u0644\u0639\u0628 \u0648\u0646\u0643\u062A\u0634\u0641! \u2B50")),
+        React.createElement("div", { style: s.grid2 }, SECTIONS.map((sec) => (React.createElement("button", { key: sec.id, style: Object.assign(Object.assign({}, s.sectionCard), { borderColor: sec.color }), onClick: () => onOpenSection(sec) },
+            React.createElement("div", { style: Object.assign(Object.assign({}, s.sectionEmoji), { background: sec.color + "22" }) }, sec.emoji),
+            React.createElement("div", { style: s.sectionTitle }, sec.title))))),
+        React.createElement("button", { style: s.gamesBtn, onClick: onOpenGames },
+            React.createElement("span", { style: { fontSize: 20 } }, "\uD83C\uDFAE"),
+            " \u0627\u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u062A\u0639\u0644\u064A\u0645\u064A\u0629"),
+        React.createElement("button", { style: s.parentsBtn, onClick: onOpenParentsGate },
+            React.createElement("span", { style: { fontSize: 15 } }, "\uD83D\uDC6A"),
+            " \u0631\u0643\u0646 \u0623\u0648\u0644\u064A\u0627\u0621 \u0627\u0644\u0623\u0645\u0648\u0631")));
+}
+/* ============================== شاشة القسم (تعلّم) ============================== */
+function LearnSection({ section, onBack, onVisit, speak }) {
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: s.gridLearn }, section.data.map((item) => (React.createElement("button", { key: item.id, style: Object.assign(Object.assign({}, s.learnCard), { borderColor: section.color }), onClick: () => {
+                onVisit(section.id, item.id);
+                const spoken = item.subKey ? `${item[section.labelKey]} — ${item[section.subKey]}` : (item.word || item[section.labelKey]);
+                speak(spoken);
+            } },
+            React.createElement("div", { style: s.learnEmoji }, section.id === "numbers"
+                ? Array.from({ length: item.num }).map((_, i) => (React.createElement("span", { key: i, style: s.quantityEmoji }, item.emoji)))
+                : item.emoji),
+            React.createElement("div", { style: Object.assign(Object.assign({}, s.learnLabel), { color: section.color }) }, item[section.labelKey]),
+            section.subKey && React.createElement("div", { style: s.learnSub }, item[section.subKey]),
+            React.createElement("span", { style: { fontSize: 13, color: "#9AA5B1" } }, "\uD83D\uDD0A")))))));
+}
+/* ============================== مركز الألعاب ============================== */
+const GAME_LIST = [
+    { id: "pick-image", title: "اختر الصورة الصحيحة", emoji: "🖼️", color: "#4C8DF2" },
+    { id: "listen-word", title: "استمع واختر الكلمة", emoji: "🔊", color: "#F2A63C" },
+    { id: "match-pairs", title: "صِل الصورة بالكلمة", emoji: "🔗", color: "#8B6FD6" },
+    { id: "order-numbers", title: "ترتيب الأرقام", emoji: "🔢", color: "#4CAF7D" },
+    { id: "letter-game", title: "لعبة الحروف", emoji: "🔤", color: "#F2673C" },
+];
+function GamesHub({ onOpenGame }) {
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: s.gridLearn }, GAME_LIST.map((g) => (React.createElement("button", { key: g.id, style: Object.assign(Object.assign({}, s.learnCard), { borderColor: g.color, minHeight: 118 }), onClick: () => onOpenGame(g.id) },
+            React.createElement("div", { style: s.learnEmoji }, g.emoji),
+            React.createElement("div", { style: Object.assign(Object.assign({}, s.learnLabel), { color: g.color, fontSize: 14 }) }, g.title)))))));
+}
+/* ---------- لعبة: اختر الصورة الصحيحة / لعبة الحروف ---------- */
+function PickImageGame({ pool, promptFn, addStar, speak, mode }) {
+    const [round, setRound] = useState(null);
+    const [feedback, setFeedback] = useState(null);
+    const newRound = useCallback(() => {
+        const correct = pick(pool);
+        const distractors = sample(pool.filter((p) => p.id !== correct.id), 3);
+        const options = shuffle([correct, ...distractors]);
+        setRound({ correct, options });
+        setFeedback(null);
+        speak(promptFn(correct));
+    }, [pool, promptFn, speak]);
+    useEffect(() => { newRound(); }, []); // eslint-disable-line
+    if (!round)
+        return null;
+    function choose(opt) {
+        if (feedback)
+            return;
+        if (opt.id === round.correct.id) {
+            setFeedback("correct");
+            addStar();
+            speak(pick(CHEERS));
+            setTimeout(newRound, 1900);
+        }
+        else {
+            setFeedback("wrong");
+            speak(pick(TRY_AGAIN));
+            setTimeout(() => setFeedback(null), 800);
+        }
+    }
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: s.gamePromptCard },
+            React.createElement("div", { style: { fontSize: 15, color: "#6E6A5C", marginBottom: 6 } }, mode === "letter" ? "اختر الصورة التي تبدأ بالحرف:" : "استمع واختر الصورة الصحيحة:"),
+            React.createElement("div", { style: { fontSize: 40, fontWeight: 900, color: "#4C8DF2" } }, mode === "letter" ? round.correct.ch : round.correct.word),
+            mode === "letter" && (React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#6E6A5C", marginTop: 2 } }, round.correct.name)),
+            React.createElement("button", { style: s.replayBtn, onClick: () => speak(promptFn(round.correct)) },
+                React.createElement("span", { style: { fontSize: 15 } }, "\uD83D\uDD0A"),
+                " \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u0627\u0633\u062A\u0645\u0627\u0639")),
+        React.createElement("div", { style: s.grid2 }, round.options.map((opt) => (React.createElement("button", { key: opt.id, onClick: () => choose(opt), style: Object.assign(Object.assign({}, s.optionCard), { borderColor: feedback && opt.id === round.correct.id ? "#4CAF7D" : "#E3DAC3", background: feedback === "wrong" && opt.id !== round.correct.id ? "#FCEBEA" : "#fff" }) },
+            React.createElement("div", { style: { fontSize: 44 } }, opt.emoji),
+            feedback && opt.id === round.correct.id && React.createElement("span", { style: { fontSize: 17, color: "#4CAF7D" } }, "\u2714")))))));
+}
+/* ---------- لعبة: استمع واختر الكلمة ---------- */
+function ListenWordGame({ pool, addStar, speak }) {
+    const [round, setRound] = useState(null);
+    const [feedback, setFeedback] = useState(null);
+    const newRound = useCallback(() => {
+        const correct = pick(pool);
+        const distractors = sample(pool.filter((p) => p.id !== correct.id), 3);
+        const options = shuffle([correct, ...distractors]);
+        setRound({ correct, options });
+        setFeedback(null);
+        speak(correct.word);
+    }, [pool, speak]);
+    useEffect(() => { newRound(); }, []); // eslint-disable-line
+    if (!round)
+        return null;
+    function choose(opt) {
+        if (feedback)
+            return;
+        if (opt.id === round.correct.id) {
+            setFeedback("correct");
+            addStar();
+            speak(pick(CHEERS));
+            setTimeout(newRound, 1900);
+        }
+        else {
+            setFeedback("wrong");
+            speak(pick(TRY_AGAIN));
+            setTimeout(() => setFeedback(null), 800);
+        }
+    }
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: s.gamePromptCard },
+            React.createElement("div", { style: { fontSize: 15, color: "#6E6A5C", marginBottom: 10 } }, "\u0627\u0633\u062A\u0645\u0639\u064A \u062C\u064A\u062F\u064B\u0627 \u062B\u0645 \u0627\u062E\u062A\u0631 \u0627\u0644\u0643\u0644\u0645\u0629 \u0627\u0644\u0635\u062D\u064A\u062D\u0629"),
+            React.createElement("button", { style: s.bigReplayBtn, onClick: () => speak(round.correct.word) },
+                React.createElement("span", { style: { fontSize: 26 } }, "\uD83D\uDD0A"))),
+        React.createElement("div", { style: s.gridLearn }, round.options.map((opt) => (React.createElement("button", { key: opt.id, onClick: () => choose(opt), style: Object.assign(Object.assign({}, s.learnCard), { borderColor: feedback && opt.id === round.correct.id ? "#4CAF7D" : "#E3DAC3", background: feedback === "wrong" && opt.id !== round.correct.id ? "#FCEBEA" : "#fff" }) },
+            React.createElement("div", { style: s.learnLabel }, opt.word)))))));
+}
+/* ---------- لعبة: صل الصورة بالكلمة ---------- */
+function MatchGame({ pool, addStar, speak }) {
+    const [items, setItems] = useState([]);
+    const [selectedImg, setSelectedImg] = useState(null);
+    const [selectedWord, setSelectedWord] = useState(null);
+    const [matched, setMatched] = useState([]);
+    const newRound = useCallback(() => {
+        const chosen = sample(pool, 4);
+        setItems(chosen);
+        setMatched([]);
+        setSelectedImg(null);
+        setSelectedWord(null);
+    }, [pool]);
+    useEffect(() => { newRound(); }, []); // eslint-disable-line
+    const images = React.useMemo(() => shuffle(items), [items]);
+    const words = React.useMemo(() => shuffle(items), [items]);
+    useEffect(() => {
+        if (selectedImg && selectedWord) {
+            if (selectedImg === selectedWord) {
+                setMatched((m) => [...m, selectedImg]);
+                addStar();
+                speak(pick(CHEERS));
+            }
+            else {
+                speak(pick(TRY_AGAIN));
+            }
+            setTimeout(() => { setSelectedImg(null); setSelectedWord(null); }, 500);
+        }
+    }, [selectedImg, selectedWord]); // eslint-disable-line
+    useEffect(() => {
+        if (items.length > 0 && matched.length === items.length) {
+            setTimeout(newRound, 1900);
+        }
+    }, [matched, items, newRound]);
+    if (items.length === 0)
+        return null;
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: { textAlign: "center", color: "#6E6A5C", fontSize: 14, marginBottom: 10 } }, "\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0635\u0648\u0631\u0629 \u062B\u0645 \u0639\u0644\u0649 \u0627\u0644\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0637\u0627\u0628\u0642\u0629"),
+        React.createElement("div", { style: { display: "flex", gap: 10 } },
+            React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 8 } }, images.map((it) => (React.createElement("button", { key: "i" + it.id, disabled: matched.includes(it.id), onClick: () => { setSelectedImg(it.id); speak(it.word); }, style: Object.assign(Object.assign({}, s.matchCell), { opacity: matched.includes(it.id) ? 0.35 : 1, borderColor: selectedImg === it.id ? "#4C8DF2" : "#E3DAC3" }) },
+                React.createElement("span", { style: { fontSize: 30 } }, it.emoji))))),
+            React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 8 } }, words.map((it) => (React.createElement("button", { key: "w" + it.id, disabled: matched.includes(it.id), onClick: () => setSelectedWord(it.id), style: Object.assign(Object.assign({}, s.matchCell), { opacity: matched.includes(it.id) ? 0.35 : 1, borderColor: selectedWord === it.id ? "#4C8DF2" : "#E3DAC3" }) },
+                React.createElement("span", { style: { fontSize: 15, fontWeight: 700 } }, it.word))))))));
+}
+/* ---------- لعبة: ترتيب الأرقام ---------- */
+function OrderNumbersGame({ addStar, speak }) {
+    const [target, setTarget] = useState([]);
+    const [tapped, setTapped] = useState([]);
+    const [shuffled, setShuffled] = useState([]);
+    const [wrongFlash, setWrongFlash] = useState(false);
+    const newRound = useCallback(() => {
+        const start = Math.floor(Math.random() * 6) + 1;
+        const seq = Array.from({ length: 5 }, (_, i) => start + i);
+        setTarget(seq);
+        setShuffled(shuffle(seq));
+        setTapped([]);
+    }, []);
+    useEffect(() => { newRound(); }, []); // eslint-disable-line
+    function tapNumber(n) {
+        const expected = target[tapped.length];
+        if (n === expected) {
+            const nextTapped = [...tapped, n];
+            setTapped(nextTapped);
+            speak(String(n));
+            if (nextTapped.length === target.length) {
+                addStar();
+                setTimeout(() => { speak(pick(CHEERS)); newRound(); }, 900);
+            }
+        }
+        else {
+            setWrongFlash(true);
+            speak(pick(TRY_AGAIN));
+            setTimeout(() => setWrongFlash(false), 500);
+        }
+    }
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: { textAlign: "center", color: "#6E6A5C", fontSize: 14, marginBottom: 10 } }, "\u0627\u0636\u063A\u0637 \u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0645\u0646 \u0627\u0644\u0623\u0635\u063A\u0631 \u0625\u0644\u0649 \u0627\u0644\u0623\u0643\u0628\u0631"),
+        React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 8, marginBottom: 22, flexWrap: "wrap" } }, target.map((n, i) => (React.createElement("div", { key: i, style: {
+                width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                background: i < tapped.length ? "#4CAF7D" : "#EDEAE0", color: i < tapped.length ? "#fff" : "#9AA5B1", fontWeight: 800, fontSize: 18,
+            } }, i < tapped.length ? tapped[i] : "؟")))),
+        React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" } }, shuffled.map((n) => (React.createElement("button", { key: n, disabled: tapped.includes(n), onClick: () => tapNumber(n), style: Object.assign(Object.assign({}, s.numberBtn), { opacity: tapped.includes(n) ? 0.3 : 1, background: wrongFlash ? "#FCEBEA" : "#fff" }) }, n))))));
+}
+/* ============================== ركن أولياء الأمور ============================== */
+function ParentsGate({ onSuccess, onBack }) {
+    const [a] = useState(() => Math.floor(Math.random() * 4) + 3);
+    const [b] = useState(() => Math.floor(Math.random() * 4) + 2);
+    const [options] = useState(() => shuffle([a + b, a + b + 1, a + b - 1, a + b + 2]));
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: { textAlign: "center", marginTop: 30 } },
+            React.createElement("span", { style: { fontSize: 28 } }, "\uD83D\uDD12"),
+            React.createElement("div", { style: { marginTop: 10, fontSize: 15, color: "#6E6A5C" } }, "\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0623\u0648\u0644\u064A\u0627\u0621 \u0627\u0644\u0623\u0645\u0648\u0631\u060C \u0644\u0644\u062A\u0623\u0643\u062F \u0623\u062C\u0628 \u0639\u0646 \u0627\u0644\u0633\u0624\u0627\u0644:"),
+            React.createElement("div", { style: { fontSize: 34, fontWeight: 800, color: "#4C8DF2", margin: "16px 0" } },
+                a,
+                " + ",
+                b,
+                " = \u061F"),
+            React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" } }, options.map((opt) => (React.createElement("button", { key: opt, onClick: () => opt === a + b && onSuccess(), style: s.numberBtn }, opt)))))));
+}
+function ParentsDashboard({ progress, stars }) {
+    const total = SECTIONS.reduce((acc, sec) => acc + sec.data.length, 0);
+    const visited = SECTIONS.reduce((acc, sec) => { var _a; return acc + (((_a = progress[sec.id]) === null || _a === void 0 ? void 0 : _a.length) || 0); }, 0);
+    const pct = Math.round((visited / total) * 100);
+    return (React.createElement("div", { style: s.screen },
+        React.createElement("div", { style: s.parentCard },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                React.createElement("span", { style: { fontSize: 24 } }, "\uD83C\uDFC6"),
+                React.createElement("div", null,
+                    React.createElement("div", { style: { fontSize: 22, fontWeight: 800, color: "#1C2321" } },
+                        stars,
+                        " \u0646\u062C\u0645\u0629"),
+                    React.createElement("div", { style: { fontSize: 12, color: "#6E6A5C" } }, "\u0625\u062C\u0645\u0627\u0644\u064A \u0627\u0644\u0646\u062C\u0648\u0645 \u0627\u0644\u0645\u0643\u062A\u0633\u0628\u0629")))),
+        React.createElement("div", { style: s.parentCard },
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 700, marginBottom: 8 } },
+                "\u0627\u0644\u062A\u0642\u062F\u0651\u0645 \u0627\u0644\u0639\u0627\u0645: ",
+                pct,
+                "%"),
+            React.createElement("div", { style: { height: 10, background: "#EDEAE0", borderRadius: 6, overflow: "hidden" } },
+                React.createElement("div", { style: { width: `${pct}%`, height: "100%", background: "#4CAF7D" } }))),
+        SECTIONS.map((sec) => {
+            var _a;
+            const done = ((_a = progress[sec.id]) === null || _a === void 0 ? void 0 : _a.length) || 0;
+            return (React.createElement("div", { key: sec.id, style: Object.assign(Object.assign({}, s.parentCard), { display: "flex", justifyContent: "space-between", alignItems: "center" }) },
+                React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+                    React.createElement("span", { style: { fontSize: 20 } }, sec.emoji),
+                    React.createElement("span", { style: { fontSize: 14, fontWeight: 600 } }, sec.title)),
+                React.createElement("span", { style: { fontSize: 13, color: "#6E6A5C" } },
+                    done,
+                    " / ",
+                    sec.data.length)));
+        })));
+}
+/* ============================== التطبيق الرئيسي ============================== */
+function App() {
+    var _a;
+    const [screen, setScreen] = useState({ name: "home" });
+    const [stars, setStars] = useState(0);
+    const [soundOn, setSoundOn] = useState(true);
+    const [progress, setProgress] = useState({});
+    const [loaded, setLoaded] = useState(false);
+    const { speak, hasArabicVoice } = useSpeaker(soundOn);
+    const saveTimer = useRef(null);
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                setStars(parsed.stars || 0);
+                setProgress(parsed.progress || {});
+            }
+        }
+        catch (e) {
+            console.log("لا يوجد تقدم محفوظ سابقًا على هذا الجهاز");
+        }
+        finally {
+            setLoaded(true);
+        }
+    }, []);
+    useEffect(() => {
+        if (!loaded)
+            return;
+        if (saveTimer.current)
+            clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ stars, progress }));
+            }
+            catch (e) {
+                console.error("تعذّر حفظ التقدم على هذا الجهاز:", e);
+            }
+        }, 400);
+    }, [stars, progress, loaded]);
+    function addStar() { setStars((v) => v + 1); }
+    function visit(sectionId, itemId) {
+        setProgress((prev) => {
+            const list = prev[sectionId] || [];
+            if (list.includes(itemId))
+                return prev;
+            addStar();
+            return Object.assign(Object.assign({}, prev), { [sectionId]: [...list, itemId] });
+        });
+    }
+    function goHome() { setScreen({ name: "home" }); }
+    let title = "فائز الصغير";
+    let showBack = false;
+    if (screen.name === "section") {
+        title = screen.section.title;
+        showBack = true;
+    }
+    else if (screen.name === "games") {
+        title = "الألعاب التعليمية";
+        showBack = true;
+    }
+    else if (screen.name === "game") {
+        title = ((_a = GAME_LIST.find((g) => g.id === screen.gameId)) === null || _a === void 0 ? void 0 : _a.title) || "لعبة";
+        showBack = true;
+    }
+    else if (screen.name === "parents-gate") {
+        title = "أولياء الأمور";
+        showBack = true;
+    }
+    else if (screen.name === "parents") {
+        title = "متابعة التقدم";
+        showBack = true;
+    }
+    return (React.createElement("div", { dir: "rtl", style: s.app },
+        React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&family=Cairo:wght@400;600;700&display=swap');
+        *{box-sizing:border-box;font-family:'Cairo',sans-serif;}
+        .display{font-family:'Tajawal',sans-serif;}
+        button{font-family:inherit;cursor:pointer;}
+      `),
+        React.createElement(NatureBackground, null),
+        React.createElement("div", { style: { position: "relative", zIndex: 1, minHeight: "100vh", display: "flex", flexDirection: "column" } },
+            React.createElement(TopBar, { title: screen.name === "home" ? null : title, onBack: screen.name === "home" ? null : goHome, stars: stars, soundOn: soundOn, setSoundOn: setSoundOn }),
+            screen.name === "home" && (React.createElement(HomeScreen, { stars: stars, hasArabicVoice: hasArabicVoice, onOpenSection: (sec) => setScreen({ name: "section", section: sec }), onOpenGames: () => setScreen({ name: "games" }), onOpenParentsGate: () => setScreen({ name: "parents-gate" }) })),
+            screen.name === "section" && (React.createElement(LearnSection, { section: screen.section, onBack: goHome, onVisit: visit, speak: speak })),
+            screen.name === "games" && (React.createElement(GamesHub, { onOpenGame: (gameId) => setScreen({ name: "game", gameId }) })),
+            screen.name === "game" && screen.gameId === "pick-image" && (React.createElement(PickImageGame, { pool: ANIMALS.concat(OBJECTS), promptFn: (o) => o.word, addStar: addStar, speak: speak, mode: "word" })),
+            screen.name === "game" && screen.gameId === "listen-word" && (React.createElement(ListenWordGame, { pool: FAMILY.concat(ANIMALS), addStar: addStar, speak: speak })),
+            screen.name === "game" && screen.gameId === "match-pairs" && (React.createElement(MatchGame, { pool: OBJECTS.concat(PROFESSIONS), addStar: addStar, speak: speak })),
+            screen.name === "game" && screen.gameId === "order-numbers" && (React.createElement(OrderNumbersGame, { addStar: addStar, speak: speak })),
+            screen.name === "game" && screen.gameId === "letter-game" && (React.createElement(PickImageGame, { pool: LETTERS, promptFn: (o) => o.name, addStar: addStar, speak: speak, mode: "letter" })),
+            screen.name === "parents-gate" && (React.createElement(ParentsGate, { onSuccess: () => setScreen({ name: "parents" }), onBack: goHome })),
+            screen.name === "parents" && (React.createElement(ParentsDashboard, { progress: progress, stars: stars })))));
+}
+/* ============================== الأنماط ============================== */
+const s = {
+    app: { minHeight: "100vh", background: "#EAF6FF", color: "#1C2321" },
+    topbar: {
+        position: "sticky", top: 0, zIndex: 5,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "12px 14px", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(6px)",
+        borderBottom: "1px solid rgba(0,0,0,0.05)",
+    },
+    backBtn: { width: 40, height: 40, borderRadius: 12, background: "#fff", border: "1px solid #E3DAC3", display: "flex", alignItems: "center", justifyContent: "center" },
+    topTitle: { fontWeight: 800, fontSize: 16, fontFamily: "'Tajawal',sans-serif", color: "#1C2321" },
+    soundBtn: { width: 34, height: 34, borderRadius: 10, background: "#fff", border: "1px solid #E3DAC3", display: "flex", alignItems: "center", justifyContent: "center" },
+    starPill: { display: "flex", alignItems: "center", gap: 4, background: "#fff", border: "1px solid #F2C43D", borderRadius: 20, padding: "6px 10px", fontWeight: 800, fontSize: 13 },
+    screen: { flex: 1, padding: "14px 16px 30px", maxWidth: 520, margin: "0 auto", width: "100%" },
+    brandTitle: { fontSize: 30, fontWeight: 900, color: "#2E5C9A" },
+    tagline: { fontSize: 14, color: "#6E6A5C", marginTop: 2, fontWeight: 700 },
+    grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
+    sectionCard: {
+        background: "#fff", border: "2px solid", borderRadius: 18, padding: "16px 10px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+        boxShadow: "0 8px 18px rgba(28,35,33,0.06)",
+    },
+    sectionEmoji: { width: 52, height: 52, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 },
+    sectionTitle: { fontSize: 14, fontWeight: 800, textAlign: "center" },
+    gamesBtn: {
+        marginTop: 16, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        background: "#4C8DF2", color: "#fff", border: "none", borderRadius: 16, padding: "14px", fontWeight: 800, fontSize: 15,
+        boxShadow: "0 10px 20px rgba(76,141,242,0.3)",
+    },
+    parentsBtn: {
+        marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        background: "transparent", color: "#6E6A5C", border: "1px dashed #B7B29B", borderRadius: 14, padding: "10px", fontWeight: 700, fontSize: 12.5,
+    },
+    gridLearn: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+    learnCard: {
+        background: "#fff", border: "2px solid", borderRadius: 16, padding: "14px 8px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minHeight: 100,
+        boxShadow: "0 6px 14px rgba(28,35,33,0.05)",
+    },
+    learnEmoji: { fontSize: 38, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 2, maxWidth: 140 },
+    quantityEmoji: { fontSize: 20 },
+    learnLabel: { fontSize: 20, fontWeight: 900 },
+    learnSub: { fontSize: 12, color: "#6E6A5C", fontWeight: 600 },
+    gamePromptCard: { background: "#fff", borderRadius: 18, padding: 18, textAlign: "center", marginBottom: 16, boxShadow: "0 8px 18px rgba(28,35,33,0.06)" },
+    replayBtn: { marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, background: "#EAF6FF", color: "#2E5C9A", border: "none", borderRadius: 20, padding: "8px 14px", fontSize: 12.5, fontWeight: 700 },
+    bigReplayBtn: { width: 70, height: 70, borderRadius: "50%", background: "#F2A63C", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 10px 20px rgba(242,166,60,0.35)" },
+    optionCard: { background: "#fff", border: "2px solid", borderRadius: 18, padding: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
+    matchCell: { background: "#fff", border: "2px solid", borderRadius: 12, padding: "10px 6px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 52 },
+    numberBtn: { width: 52, height: 52, borderRadius: 12, border: "2px solid #E3DAC3", fontWeight: 800, fontSize: 20, color: "#1C2321" },
+    parentCard: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: "0 6px 14px rgba(28,35,33,0.05)" },
+    voiceWarning: { background: "#FFF6E0", border: "1px solid #F2C43D", borderRadius: 12, padding: "10px 12px", fontSize: 12.5, color: "#6E5A1C", marginBottom: 14, textAlign: "center", lineHeight: 1.6 },
+};
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
